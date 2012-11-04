@@ -36,6 +36,7 @@ class QLearningAgent(ReinforcementAgent):
   def __init__(self, **args):
     "You can initialize Q-values here..."
     ReinforcementAgent.__init__(self, **args)
+    self.qvalues = util.Counter()
 
     "*** YOUR CODE HERE ***"
 
@@ -46,6 +47,7 @@ class QLearningAgent(ReinforcementAgent):
       a state or (state,action) tuple
     """
     "*** YOUR CODE HERE ***"
+    return self.qvalues[(state,action)]
     util.raiseNotDefined()
 
 
@@ -57,6 +59,17 @@ class QLearningAgent(ReinforcementAgent):
       terminal state, you should return a value of 0.0.
     """
     "*** YOUR CODE HERE ***"
+    actions=self.getLegalActions(state)
+    if len(actions)==0:
+    	return 0.0
+    maxi=float("-inf")
+    for j in actions:
+    	#trans=self.mdp.getTransitionStatesAndProbs(state,j)
+    	sigma=self.getQValue(state,j)
+    	if sigma>maxi:
+    		maxi=sigma
+    		self.qvalues[(state,j)]=maxi
+    return maxi
     util.raiseNotDefined()
 
   def getPolicy(self, state):
@@ -65,6 +78,15 @@ class QLearningAgent(ReinforcementAgent):
       are no legal actions, which is the case at the terminal state,
       you should return None.
     """
+    actions=self.getLegalActions(state)
+    a=None
+    v=float("-inf")
+    for i in actions:
+    	tem=self.getQValue(state,i)
+    	if tem>v:
+    		v=tem
+    		a=i
+    return a
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
@@ -82,10 +104,13 @@ class QLearningAgent(ReinforcementAgent):
     # Pick Action
     legalActions = self.getLegalActions(state)
     action = None
+    action=self.getPolicy(state)
+    if len(legalActions)>0 and util.flipCoin(self.epsilon):
+    	return random.choice(legalActions)
+    return action
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
-    return action
 
   def update(self, state, action, nextState, reward):
     """
@@ -97,7 +122,10 @@ class QLearningAgent(ReinforcementAgent):
       it will be called on your behalf
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    sample=reward+self.discount*self.getValue(nextState)
+    self.qvalues[(state,action)]=(1-self.alpha)*self.qvalues[(state,action)]+self.alpha*sample
+    
+    #util.raiseNotDefined()
 
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
