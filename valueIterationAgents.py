@@ -6,7 +6,7 @@
 # John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
-import mdp, util
+import mdp, util,random
 
 from learningAgents import ValueEstimationAgent
 
@@ -36,6 +36,30 @@ class ValueIterationAgent(ValueEstimationAgent):
     self.iterations = iterations
     self.values = util.Counter() # A Counter is a dict with default 0
      
+    for i in range(iterations):
+    	tem=self.values.copy()
+    	states=self.mdp.getStates()
+    	#state=self.mdp.getStartState()
+    	for state in states:
+    		if self.mdp.isTerminal(state):
+    			continue
+    	#while not self.mdp.isTerminal(state):
+    		actions=self.mdp.getPossibleActions(state)
+    		maxi=float("-inf")
+    		for j in actions:
+    			trans=self.mdp.getTransitionStatesAndProbs(state,j)
+    			sigma=self.getQValue(state,j)
+    			#for k in trans:
+    				#print trans[1]
+    				#sigma+=k[1]*(self.mdp.getReward(state,j,k[0])+self.discount*self.values[k[0]])
+    			if sigma>maxi:
+    				maxi=sigma
+    		tem[state]=maxi
+    		#print "updtd"
+    		#self.values=tem
+    		state=random.choice(trans)[0]
+    	self.values=tem
+    		#print state
     "*** YOUR CODE HERE ***"
     
   def getValue(self, state):
@@ -54,6 +78,11 @@ class ValueIterationAgent(ValueEstimationAgent):
       to derive it on the fly.
     """
     "*** YOUR CODE HERE ***"
+    trans=self.mdp.getTransitionStatesAndProbs(state,action)
+    sigma=0
+    for i in trans:
+    	sigma+=i[1]*(self.mdp.getReward(state,action,i[0])+self.discount*self.values[i[0]])
+    return sigma
     util.raiseNotDefined()
 
   def getPolicy(self, state):
@@ -65,6 +94,15 @@ class ValueIterationAgent(ValueEstimationAgent):
       terminal state, you should return None.
     """
     "*** YOUR CODE HERE ***"
+    actions=self.mdp.getPossibleActions(state)
+    a=None
+    v=float("-inf")
+    for i in actions:
+    	tem=self.getQValue(state,i)
+    	if tem>v:
+    		v=tem
+    		a=i
+    return a
     util.raiseNotDefined()
 
   def getAction(self, state):
